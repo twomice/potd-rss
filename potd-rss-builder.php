@@ -15,18 +15,21 @@ $document = FluentDOM::load(
 
 
 foreach ($document('//table[@class="potdfeeder"]/descendant::img') as $a) {
-  var_dump($a['src']);
-  var_dump($a['alt']);
-  $title = $a['alt'];
+  $info['src'] = $a['src'];
+  $info['title'] = $a['alt'];
 }
-foreach ($document('//table[@class="potdfeeder"]/descendant::a[@href][@title="' . $title . '"][not(@class)]') as $a) {
-  if ($a['title'] == $title && $a['class'] == '') {
+foreach ($document('//table[@class="potdfeeder"]/descendant::a[@href][@title="Wikipedia:Featured pictures"][not(@class)]/ancestor::div[position()=2]') as $a) {
+  // $a alone gives me sanitized text, but I want the innerHTML.
+  $info['description'] = $a->saveHtml();
+}
+
+foreach ($document('//table[@class="potdfeeder"]/descendant::a[@href][@title="' . $info['title'] . '"][not(@class)]') as $a) {
+  if ($a['title'] == $info['title'] && $a['class'] == '') {
     echo "Link: ". $a['href'] . "\n";
   }
-  $links[] = [
-    'caption' => (string)$a,
-    'href' => $a['href']
-  ];
+  $info['caption'] = (string)$a;
+  $info['href'] = $a['href'];
 }
-var_dump($links);
+
+var_dump($info);
 
