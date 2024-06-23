@@ -1,0 +1,15 @@
+{
+    "name": "twomice/potd-rss",
+    "description": "RSS feed of Wikimedia Picture Of The Day",
+    "type": "project",
+    "license": "GPL 3",
+    "authors": [
+        {
+            "name": "Allen Shaw",
+            "email": "allen@joineryhq.com"
+        }
+    ],
+    "require": {
+        "fluentdom/fluentdom": "^8.0"
+    }
+}
