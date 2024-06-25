@@ -55,6 +55,7 @@ function writeToRssFile($rssString, $outputFile) {
  * @return string Full RSS output.
  */
 function getRssOutput($info) {
+  $rssDate = date('r');
   $feedDocument = new FluentDOM\DOM\Document();
   $feedDocument->registerNamespace('atom', 'http://www.w3.org/2005/Atom');
   $feedDocument->formatOutput = TRUE;
@@ -65,10 +66,14 @@ function getRssOutput($info) {
   $channel->appendElement('title', 'CIGA POTD');
   $channel->appendElement('link', 'https://twomice.me/ciga');
   $channel->appendElement('description', 'Daily Wikipedia POTD');
+  $channel->appendElement('pubDate', $rssDate);
+  $channel->appendElement('lastBuildDate', $rssDate);
 
   $item = $channel->appendElement('item');
   $item->appendElement('title', $info['title']);
   $item->appendElement('link', $info['href']);
+  $item->appendElement('pubDate', $rssDate);
+  $item->appendElement('guid', $info['potdUrl']);
   $description = $item->appendElement('description', $info['description']);
   $description->appendElement('img', ['src' => $info['src']]);
 
@@ -108,11 +113,15 @@ function purgeWikiPageCache($wikiPageTitle) {
  * @return array
  */
 function getInfoFromFile($htmlFile) {
+  $info = [];
   $document = FluentDOM::load(
     $htmlFile,
     'text/html',
     [FluentDOM\Loader\Options::ALLOW_FILE => TRUE]
   );
+
+  $urlA = $document('//span[@id="potdfeeder-url"]/descendant::a')[0];
+  $info['potdUrl'] = $urlA['href'];
 
   $titleA = $document('//div[@id="potdfeeder-title"]/descendant::a')[0];
   $info['title'] = $titleA->textContent;
