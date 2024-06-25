@@ -68,6 +68,7 @@ function getRssOutput($info) {
   $channel->appendElement('description', 'Daily Wikipedia POTD');
   $channel->appendElement('pubDate', $rssDate);
   $channel->appendElement('lastBuildDate', $rssDate);
+  $channel->appendElement('ttl', '1440');
 
   $item = $channel->appendElement('item');
   $item->appendElement('title', $info['title']);
