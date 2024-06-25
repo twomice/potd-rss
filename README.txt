@@ -1,7 +1,8 @@
 This work is intended to provide some online source from which my family hompage
-(currently running on protonpage.com) can easily embed the Wikipedia Picture of
-The Day.
+(currently running on protopage.com) can easily embed the Wikipedia Picture of
+The Day ("POTD").
 
-I thought we would use an RSS feed, but creating a low-content HTML page gives
-me a little more control over the layout and content (and this way I don't have 
-to learn about RSS formats).
+I thought of creating a low-content HTML page to embed on protopage, but using an
+RSS feed gives me slightly better layout, so I'm going this way.
+
+The resulting RSS feed will always have exactly one item, the most recent POTD.
