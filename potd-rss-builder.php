@@ -1,10 +1,11 @@
 <?php
-require __DIR__.'/vendor/autoload.php';
-require __DIR__.'/config.php';
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/config.php';
 
 validateConfigOrDie($config);
 
-$htmlFile = 'https://en.wikipedia.org/wiki/'. $config['wikiPageTitle'];
+$htmlFile = 'https://en.wikipedia.org/wiki/' . $config['wikiPageTitle'];
 //$htmlFile = 'example.html';
 
 purgeWikiPageCache($config['wikiPageTitle'], $config['apiToken']);
@@ -84,48 +85,48 @@ function getRssOutput($info) {
 /**
  * Invoke Wikipedia API to purche cache on a given page, to ensure that the POTD
  * content on that page is current.
- * 
+ *
  * @param string $wikiPageTitle The Wikipedia title of the relevant Wikipedia page.
  */
 function purgeWikiPageCache($wikiPageTitle, $apiToken = '') {
   $endPoint = "https://en.wikipedia.org/w/api.php";
 
-	$params = [
-		"action" => "purge",
-		"titles" => $wikiPageTitle,
-		"format" => "json"
-	];
+  $params = [
+    "action" => "purge",
+    "titles" => $wikiPageTitle,
+    "format" => "json"
+  ];
 
-	$ch = curl_init();
+  $ch = curl_init();
 
-	curl_setopt( $ch, CURLOPT_URL, $endPoint );
-	curl_setopt( $ch, CURLOPT_POST, true );
-	curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $params ) );
-	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+  curl_setopt($ch, CURLOPT_URL, $endPoint);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   if (!empty($apiToken)) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
       'Authorization: Bearer ' . $apiToken
     ]);
   }
 
-	$output = curl_exec( $ch );
+  $output = curl_exec($ch);
   // TODO: If json_decode($output) contains key 'error', log that somewhere.
 
-  curl_close( $ch );
+  curl_close($ch);
 }
 
 /**
  * Parse the given html to build an array of info for our RSS feed.
  * @param string $htmlFile The file to be loaded by FluentDOM.
- * 
+ *
  * @return array
  */
 function getInfoFromFile($htmlFile) {
   $info = [];
   $document = FluentDOM::load(
-    $htmlFile,
-    'text/html',
-    [FluentDOM\Loader\Options::ALLOW_FILE => TRUE]
+      $htmlFile,
+      'text/html',
+      [FluentDOM\Loader\Options::ALLOW_FILE => TRUE]
   );
 
   $urlA = $document('//span[@id="potdfeeder-url"]/descendant::a')[0];
@@ -146,7 +147,7 @@ function getInfoFromFile($htmlFile) {
       $arr = preg_split('/\s+/', trim($candidate));
       list($src, $descriptor) = $arr;
       $descriptor = (float) $descriptor;
-      $descriptor = number_format((float)$descriptor, 4, '.', '');
+      $descriptor = number_format((float) $descriptor, 4, '.', '');
       $srcset["$descriptor"] = $src;
     }
     ksort($srcset);
@@ -161,7 +162,7 @@ function getInfoFromFile($htmlFile) {
 
   $caption = $document('//div[@id="potdfeeder-caption"]')[0];
   $info['description'] = trim($caption->textContent);
-  
+
   return $info;
 }
 
@@ -171,7 +172,7 @@ function getInfoFromFile($htmlFile) {
  */
 function validateInfoOrDie($info) {
   $errors = [];
-  if(empty($info['src'])) {
+  if (empty($info['src'])) {
     $errors[] = "Te 'src' element is missing";
   }
   if (!empty($errors)) {
