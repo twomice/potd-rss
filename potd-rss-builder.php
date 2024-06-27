@@ -7,7 +7,7 @@ validateConfigOrDie($config);
 $htmlFile = 'https://en.wikipedia.org/wiki/'. $config['wikiPageTitle'];
 //$htmlFile = 'example.html';
 
-purgeWikiPageCache($config['wikiPageTitle']);
+purgeWikiPageCache($config['wikiPageTitle'], $config['apiToken']);
 $info = getInfoFromFile($htmlFile);
 validateInfoOrDie($info);
 $rssOutput = getRssOutput($info);
@@ -87,7 +87,7 @@ function getRssOutput($info) {
  * 
  * @param string $wikiPageTitle The Wikipedia title of the relevant Wikipedia page.
  */
-function purgeWikiPageCache($wikiPageTitle) {
+function purgeWikiPageCache($wikiPageTitle, $apiToken = '') {
   $endPoint = "https://en.wikipedia.org/w/api.php";
 
 	$params = [
@@ -102,9 +102,16 @@ function purgeWikiPageCache($wikiPageTitle) {
 	curl_setopt( $ch, CURLOPT_POST, true );
 	curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $params ) );
 	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+  if (!empty($apiToken)) {
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Authorization: Bearer ' . $apiToken
+    ]);
+  }
 
 	$output = curl_exec( $ch );
-	curl_close( $ch );
+  // TODO: If json_decode($output) contains key 'error', log that somewhere.
+
+  curl_close( $ch );
 }
 
 /**
