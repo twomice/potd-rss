@@ -7,6 +7,11 @@ $config = [];
 // inside of certain <div>s with certain 'id's
 $config['wikiPageTitle'] = '';
 
+// Wikipedia policy requires specifying a user agent. 
+// Reference: https://wikitech.wikimedia.org/wiki/Robot_policy
+// Suggest using a format like: YourAppName/1.0 (https://yourwebsite.com; your.email@example.com)
+$config['userAgent'] = '';
+
 // Full system path for rss file to be written. 
 // Note: It's not completely in the tradition of RSS, but this RSS file will contain
 // extactly ONE item: the most recent POTD. This fits my use case, which is to

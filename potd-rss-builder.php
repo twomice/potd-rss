@@ -1,14 +1,20 @@
 <?php
 
+/**
+ * Purge cache for the configured wikipedia user page, and fetch that page into an rss feed.
+ * 
+ * Creates some files under current/ for inspection.
+ */
+
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/config.php';
+global $config;
 
-validateConfigOrDie($config);
+validateConfigOrDie();
 
 $htmlFile = 'https://en.wikipedia.org/wiki/' . $config['wikiPageTitle'];
-//$htmlFile = 'example.html';
 
-purgeWikiPageCache($config['wikiPageTitle'], $config['apiToken']);
+purgeWikiPageCache();
 $info = getInfoFromFile($htmlFile);
 validateInfoOrDie($info);
 $rssOutput = getRssOutput($info);
@@ -16,9 +22,9 @@ writeToRssFile($rssOutput, $config['outputFile']);
 
 /**
  * Ensure our configuration is sound; if not, die with error messages.
- * @param array $config
  */
-function validateConfigOrDie($config) {
+function validateConfigOrDie() {
+  global $config;
   $errors = [];
   if (empty($config['outputFile'])) {
     $errors[] = 'Missing configuration: outputFile';
@@ -83,36 +89,56 @@ function getRssOutput($info) {
 }
 
 /**
- * Invoke Wikipedia API to purche cache on a given page, to ensure that the POTD
+ * Execute curl.
+ * 
+ * @global array $config
+ * 
+ * @param string $endPoint Typically a URL.
+ * @param array $queryParams Query parameters
+ * @param bool $isAuthorization Whether or not to send an "Authorization: Bearer" header.
+ * @return whatever is returned by curl_exec().
+ */
+function doCurl($endPoint, $queryParams = [], $isAuthorization = FALSE) {
+  global $config;
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $endPoint);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_USERAGENT, $config['userAgent']);
+  if ($isAuthorization && !empty($config['apiToken'])) {
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Authorization: Bearer ' . $config['apiToken']
+    ]);
+  }
+  if (is_array($queryParams)) {
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($queryParams));
+  }
+
+  $output = curl_exec($ch);
+  curl_close($ch);
+  return $output;
+}
+
+/**
+ * Invoke Wikipedia API to purge cache on a given page, to ensure that the POTD
  * content on that page is current.
  *
  * @param string $wikiPageTitle The Wikipedia title of the relevant Wikipedia page.
  */
-function purgeWikiPageCache($wikiPageTitle, $apiToken = '') {
+function purgeWikiPageCache() {
+  global $config;
   $endPoint = "https://en.wikipedia.org/w/api.php";
 
-  $params = [
+  $queryParams = [
     "action" => "purge",
-    "titles" => $wikiPageTitle,
+    "titles" => $config['wikiPageTitle'],
     "format" => "json"
   ];
 
-  $ch = curl_init();
+  $output = doCurl($endPoint, $queryParams, TRUE);
 
-  curl_setopt($ch, CURLOPT_URL, $endPoint);
-  curl_setopt($ch, CURLOPT_POST, true);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  if (!empty($apiToken)) {
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-      'Authorization: Bearer ' . $apiToken
-    ]);
-  }
-
-  $output = curl_exec($ch);
-  // TODO: If json_decode($output) contains key 'error', log that somewhere.
-
-  curl_close($ch);
+  // Log output to file:
+  file_put_contents(__DIR__ . '/current/log_purgeOutput.txt', $output . "\n");
 }
 
 /**
@@ -123,6 +149,12 @@ function purgeWikiPageCache($wikiPageTitle, $apiToken = '') {
  */
 function getInfoFromFile($htmlFile) {
   $info = [];
+  if (strpos($htmlFile, 'http') === 0) {
+    $html = doCurl($htmlFile);
+    $filePath = __DIR__ . '/current/fetched_htmlFile.html';
+    file_put_contents($filePath, $html . "\n");
+    $htmlFile = $filePath; 
+  }
   $document = FluentDOM::load(
       $htmlFile,
       'text/html',
@@ -173,7 +205,7 @@ function getInfoFromFile($htmlFile) {
 function validateInfoOrDie($info) {
   $errors = [];
   if (empty($info['src'])) {
-    $errors[] = "Te 'src' element is missing";
+    $errors[] = "The 'src' element is missing";
   }
   if (!empty($errors)) {
     echo "Parsed info won't result in desirable RSS content; ending here. See errors below.\n";
