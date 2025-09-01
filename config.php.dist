@@ -21,7 +21,7 @@ $config['userAgent'] = '';
 $config['outputFile'] = '';
 
 // Wikipedia user token, required for authentication when purging user page cache
-// (Otherwise, WP is likely to block you for one reason or another).
+// (Otherwise, Wikipedia is likely to block you for one reason or another).
 // References:
 //  - Documentation: https://api.wikimedia.org/wiki/Authentication#Personal_API_tokens
 //  - Logged-in user API tokens: https://api.wikimedia.org/wiki/Special:AppManagement

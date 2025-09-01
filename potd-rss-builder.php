@@ -149,7 +149,12 @@ function purgeWikiPageCache() {
  */
 function getInfoFromFile($htmlFile) {
   $info = [];
-  if (strpos($htmlFile, 'http') === 0) {
+  
+  // If htmlFile is a wikipedia URL, we cannot use FluentDOM::load() to fetch
+  // it, because wikipedia's robot policy requires a user-agent string, which
+  // FluentDOM (afaik) cannot do. In this case we'll fetch it with curl and put
+  // it in a file, which we'll then pass to FluentDOM::load().
+  if (strpos($htmlFile, 'http') === 0 && strpos($htmlFile, 'wikipedia.org')) {
     $html = doCurl($htmlFile);
     $filePath = __DIR__ . '/current/fetched_htmlFile.html';
     file_put_contents($filePath, $html . "\n");
@@ -161,6 +166,8 @@ function getInfoFromFile($htmlFile) {
       [FluentDOM\Loader\Options::ALLOW_FILE => TRUE]
   );
 
+  // Note: this logic depends upon specific DOM elements appearing in the given
+  // htmlFile content. See README.md.
   $urlA = $document('//span[@id="potdfeeder-url"]/descendant::a')[0];
   $info['potdUrl'] = $urlA['href'];
 
