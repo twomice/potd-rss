@@ -1,9 +1,20 @@
 <?php
-
 /**
- * Purge cache for the configured wikipedia user page, and fetch that page into an rss feed.
- * 
- * Creates some files under current/ for inspection.
+ * potd-rss: Builds a single-element RSS feed for Wikipedia's Picture of The Day
+ * Copyright (C) 2025, Allen Shaw
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 require __DIR__ . '/vendor/autoload.php';
@@ -90,9 +101,9 @@ function getRssOutput($info) {
 
 /**
  * Execute curl.
- * 
+ *
  * @global array $config
- * 
+ *
  * @param string $endPoint Typically a URL.
  * @param array $queryParams Query parameters
  * @param bool $isAuthorization Whether or not to send an "Authorization: Bearer" header.
@@ -149,7 +160,7 @@ function purgeWikiPageCache() {
  */
 function getInfoFromFile($htmlFile) {
   $info = [];
-  
+
   // If htmlFile is a wikipedia URL, we cannot use FluentDOM::load() to fetch
   // it, because wikipedia's robot policy requires a user-agent string, which
   // FluentDOM (afaik) cannot do. In this case we'll fetch it with curl and put
@@ -158,7 +169,7 @@ function getInfoFromFile($htmlFile) {
     $html = doCurl($htmlFile);
     $filePath = __DIR__ . '/current/fetched_htmlFile.html';
     file_put_contents($filePath, $html . "\n");
-    $htmlFile = $filePath; 
+    $htmlFile = $filePath;
   }
   $document = FluentDOM::load(
       $htmlFile,
